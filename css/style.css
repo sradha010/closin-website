@@ -1376,3 +1376,53 @@ h2 {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
 }
+/* ---------- RESPONSIVE FOOTER ---------- */
+
+/* Tablets and small desktops */
+@media (max-width: 992px) {
+    .footer-content {
+        grid-template-columns: 1fr 1fr; /* Two columns instead of three */
+        gap: 2.5rem;
+    }
+    
+    .footer-brand {
+        grid-column: span 2; /* Let the brand take full width on tablets */
+        text-align: center;
+    }
+
+    .footer-brand .tagline {
+        margin: 0 auto; /* Center the tagline */
+    }
+}
+
+/* Mobile Phones */
+@media (max-width: 600px) {
+    .footer {
+        padding: 3rem 0 1.5rem;
+    }
+
+    .footer-content {
+        grid-template-columns: 1fr; /* Stack everything in one column */
+        text-align: center; /* Center text for a better mobile look */
+        gap: 2rem;
+    }
+
+    .footer-brand {
+        grid-column: span 1;
+    }
+
+    .footer-links ul {
+        align-items: center; /* Center the list items */
+    }
+
+    .footer-links a:hover {
+        transform: translateY(-2px); /* Vertical hover effect feels better on mobile than horizontal */
+    }
+
+    .footer-bottom {
+        flex-direction: column; /* Stack copyright and partner text */
+        gap: 1rem;
+        margin-top: 3rem;
+        text-align: center;
+    }
+}
