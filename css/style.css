@@ -393,10 +393,10 @@ body {
     width: 100%;
     grid-column: span 3;
     margin: 0px auto;
+     padding-top: 4rem;
  }
  .service-card:hover {
    transform: translateY(-10px);
-   background-color:rgba(159, 117, 233, 0.593); ;
    box-shadow: 0 0 45px rgba(124, 58, 237, 0.45);
    }
 
@@ -404,7 +404,9 @@ body {
     transform: scaleX(1);
     }
 
-     
+   .service-card:hover::after {
+     opacity: 1;
+    }
 
 /* ===========================
    CARD CONTENT
@@ -547,18 +549,19 @@ body {
 
 /* Key Message Box at the bottom */
 .key-message {
-  text-align: center;
-  margin: 4rem auto;
-  padding: 2.5rem;
-  background: rgba(124, 58, 237, 0.077);
-  border: 1px solid var(--primary-purple);
-  border-radius: 10px;
-  max-width: 600px; /* Keeps it from getting too wide on desktop */
-  width: 90%;
-  /* Soft purple outer glow */
-  box-shadow: 0 0 50px rgba(124, 58, 237, 0.15);
+    text-align: center;
+    margin-top: var(--spacing-xl);
+    padding: 3rem;
+    background: #6a00ff14;
+    border: 2px solid var(--primary-purple);
+    border-radius: 16px;
+    box-shadow: 0 10px 40px var(--glow-purple);
 }
-
+.key-message h3 {
+    font-size: clamp(1.75rem, 3vw, 2.5rem);
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
 .gradient-text {
   background: linear-gradient(90deg, #a855f7, #6366f1);
   -webkit-background-clip: text;
@@ -691,13 +694,19 @@ body {
     padding: 3rem 0;
     /* This creates a fade effect on the left and right edges */
     mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+   cursor: grab;
+    overflow-x: scroll; /* ← change from hidden to scroll */
+    scrollbar-width: none; 
 }
 
+.clients-scroll-wrapper::-webkit-scrollbar {
+    display: none;
+}
 .clients-scroll {
     display: flex;
     width: fit-content;
     gap: 4rem;
-    animation: scroll 30s linear infinite;
+    animation: scroll 20s linear infinite;
 }
 
 /* --- Client Card Styling --- */
@@ -732,8 +741,16 @@ body {
     transition: filter 0.3s ease;
 }
 
-.client-item:hover .client-logo {
-    filter: grayscale(0) brightness(1); /* Restore color on hover */
+.client-item:hover {
+    transform: translateY(-10px) scale(1.08); /* ← increase scale for more pop */
+    border-color: var(--primary-purple);
+    background: rgba(106, 0, 255, 0.06);
+    box-shadow: 0 0 50px rgba(124, 58, 237, 0.15);
+}
+
+/* ← ADD THIS — pauses scroll on hover */
+.clients-scroll:has(.client-item:hover) {
+    animation-play-state: paused;
 }
 
 .client-name {
@@ -1011,11 +1028,17 @@ h2 {
     box-shadow: rgba(124, 58, 237, 0.15) 0px 0px 15px inset;
 }
 
-.info-item .label {
-    font-size: 0.75rem;
-    letter-spacing: 2px;
-    color: rgba(183, 151, 239, 0.912);
-    margin-bottom: 0.25rem;
+.info-item h4 {
+    color: var(--accent-violet);
+    margin-bottom: .5rem;
+    font-size: .9rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+}
+.info-item p {
+    color: var(--text-primary);
+    font-size: 1.125rem;
+    margin: .25rem 0;
 }
 
 /* Button Styles */
@@ -1161,6 +1184,60 @@ h2 {
     color: #888;
     position: relative;
     z-index: 1;
+}
+/* Social Icons */
+.footer-socials {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.social-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  color: rgba(255, 255, 255, 0.6);
+  background: rgba(124, 58, 237, 0.05);
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.social-icon:hover {
+  background: rgba(124, 58, 237, 0.25);
+  border-color: var(--accent-violet);
+  color: #fff;
+  transform: translateY(-3px);
+  box-shadow: 0 0 15px rgba(124, 58, 237, 0.3);
+}
+
+/* Contact Details */
+.contact-detail {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.75rem;
+}
+
+.contact-icon {
+  font-size: 0.95rem;
+  width: 20px;
+  text-align: center;
+}
+
+.contact-detail a,
+.contact-detail span {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.95rem;
+  transition: color 0.25s ease;
+}
+
+.contact-detail a:hover {
+  color: var(--accent-violet);
 }
 
 /* --- The Scroll Animation --- */
