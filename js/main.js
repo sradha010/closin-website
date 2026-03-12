@@ -170,6 +170,57 @@ function animate() {
   requestAnimationFrame(animate);
 }
 
+// === Draggable Client Scroll ===
+const scrollContainer = document.querySelector('.clients-scroll-wrapper');
+let isDown = false;
+let startX;
+let scrollLeft;
+
+// Pause animation on drag
+scrollContainer.addEventListener('mousedown', (e) => {
+    isDown = true;
+    scrollContainer.style.cursor = 'grabbing';
+    startX = e.pageX - scrollContainer.offsetLeft;
+    scrollLeft = scrollContainer.scrollLeft;
+    document.querySelector('.clients-scroll').style.animationPlayState = 'paused';
+});
+
+scrollContainer.addEventListener('mouseleave', () => {
+    isDown = false;
+    scrollContainer.style.cursor = 'grab';
+    document.querySelector('.clients-scroll').style.animationPlayState = 'running';
+});
+
+scrollContainer.addEventListener('mouseup', () => {
+    isDown = false;
+    scrollContainer.style.cursor = 'grab';
+    document.querySelector('.clients-scroll').style.animationPlayState = 'running';
+});
+
+scrollContainer.addEventListener('mousemove', (e) => {
+    if (!isDown) return;
+    e.preventDefault();
+    const x = e.pageX - scrollContainer.offsetLeft;
+    const walk = (x - startX) * 2;
+    scrollContainer.scrollLeft = scrollLeft - walk;
+});
+
+// Touch support for mobile
+scrollContainer.addEventListener('touchstart', (e) => {
+    startX = e.touches[0].pageX - scrollContainer.offsetLeft;
+    scrollLeft = scrollContainer.scrollLeft;
+    document.querySelector('.clients-scroll').style.animationPlayState = 'paused';
+});
+
+scrollContainer.addEventListener('touchend', () => {
+    document.querySelector('.clients-scroll').style.animationPlayState = 'running';
+});
+
+scrollContainer.addEventListener('touchmove', (e) => {
+    const x = e.touches[0].pageX - scrollContainer.offsetLeft;
+    const walk = (x - startX) * 2;
+    scrollContainer.scrollLeft = scrollLeft - walk;
+});
 
 /* =========================
    Start
