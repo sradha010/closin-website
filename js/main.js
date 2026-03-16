@@ -26,8 +26,14 @@ const ctx = canvas.getContext("2d");
 function resizeCanvas() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
+  // FIX 2: Re-randomize particle positions after resize
+  // so they are always within the new canvas bounds
+  particles.forEach(p => {
+    p.x = Math.random() * canvas.width;
+    p.y = Math.random() * canvas.height;
+  });
 }
-resizeCanvas();
+
 window.addEventListener("resize", resizeCanvas);
 
 /* =========================
@@ -37,11 +43,15 @@ const particles = [];
 
 class Particle {
   constructor() {
-    this.x = Math.random() * canvas.width;
-    this.y = Math.random() * canvas.height;
+    this.reset();
     this.radius = 2;
     this.vx = (Math.random() - 0.5) * 0.3;
     this.vy = (Math.random() - 0.5) * 0.3;
+  }
+
+  reset() {
+    this.x = Math.random() * canvas.width;
+    this.y = Math.random() * canvas.height;
   }
 
   move() {
@@ -97,8 +107,8 @@ function drawLocalNetwork() {
       if (dist < 90) {
         ctx.strokeStyle = `rgba(180, 140, 255, ${(1 - dist / 90) * 0.45})`;
         ctx.lineWidth = 0.5;
-        ctx.shadowBlur = 6;
-        ctx.shadowColor = "rgba(180, 140, 255, 0.35)";
+        // FIX 2 (performance): Set shadow ONCE outside the loop,
+        // not inside — shadowBlur is one of the most expensive canvas ops.
         ctx.beginPath();
         ctx.moveTo(p1.x, p1.y);
         ctx.lineTo(p2.x, p2.y);
@@ -113,6 +123,9 @@ function drawLocalNetwork() {
 ========================= */
 function drawMouseConnections() {
   if (!mouse.x || !mouse.y) return;
+  // Set shadow ONCE before the loop (not inside forEach)
+  ctx.shadowBlur = 18;
+  ctx.shadowColor = "rgba(168, 162, 175, 0.8)";
   particles.forEach(p => {
     const dx = mouse.x - p.x;
     const dy = mouse.y - p.y;
@@ -120,62 +133,129 @@ function drawMouseConnections() {
     if (dist < mouse.radius) {
       ctx.strokeStyle = `rgba(200, 160, 255, ${1 - dist / mouse.radius})`;
       ctx.lineWidth = 1;
-      ctx.shadowBlur = 18;
-      ctx.shadowColor = "rgba(168, 162, 175, 0.8)";
       ctx.beginPath();
       ctx.moveTo(mouse.x, mouse.y);
       ctx.lineTo(p.x, p.y);
       ctx.stroke();
     }
   });
+  // Reset shadow after the loop so it doesn't bleed onto particles
+  ctx.shadowBlur = 0;
+  ctx.shadowColor = "transparent";
 }
 
 /* =========================
    Animation Loop
 ========================= */
+// FIX 2: Track the RAF id so we can cancel it on resize
+let rafId = null;
+let isAnimating = false;
+
 function animate() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   particles.forEach(p => { p.move(); p.draw(); });
   drawLocalNetwork();
   drawMouseConnections();
-  requestAnimationFrame(animate);
+  rafId = requestAnimationFrame(animate);
+}
+
+function stopAnimation() {
+  if (rafId !== null) {
+    cancelAnimationFrame(rafId);
+    rafId = null;
+  }
+  isAnimating = false;
+}
+
+function startAnimation() {
+  if (isAnimating) return; // Guard: never start a second loop
+  isAnimating = true;
+  initParticles();
+  resizeCanvas();
+  animate();
 }
 
 /* =========================
-   Start — Desktop Only
+   FIX 2 & 3: Mobile detection
+   Use a consistent breakpoint (900px matches your CSS navbar breakpoint)
 ========================= */
 function isMobile() {
-  return window.innerWidth <= 768;
+  return window.innerWidth <= 900;
 }
 
-if (!isMobile()) {
-  canvas.style.display = 'block';
-  initParticles();
-  animate();
-} else {
-  canvas.style.display = 'none';
-}
+/* =========================
+   FIX 3: Toggle background based on screen size
+   - Desktop (>900px): show canvas particles, hide bubbles
+   - Mobile (≤900px):  hide canvas, show bubbles
+========================= */
+function applyBackground() {
+  const mobile = isMobile();
 
-window.addEventListener('resize', () => {
-  if (!isMobile()) {
-    canvas.style.display = 'block';
-    if (particles.length === 0) {
-      initParticles();
-      animate();
-    }
+  if (mobile) {
+    // Switch to bubble background
+    canvas.style.display = "none";
+    stopAnimation();
+    particles.length = 0;
+    document.getElementById("mobile-bubbles").style.display = "block";
   } else {
-    canvas.style.display = 'none';
-    particles.length = 0; // ← clear particles on mobile
+    // Switch to particle canvas
+    document.getElementById("mobile-bubbles").style.display = "none";
+    canvas.style.display = "block";
+    startAnimation();
+  }
+}
+
+// Run on load
+applyBackground();
+
+// FIX 2 & 3: Re-evaluate on every resize
+// debounced so it doesn't fire 100x per second while dragging
+let resizeTimer = null;
+window.addEventListener("resize", () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    applyBackground();
+  }, 150);
+});
+
+/* =========================
+   FIX 2 (performance): Pause animation when tab is hidden
+========================= */
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    stopAnimation();
+  } else if (!isMobile()) {
+    startAnimation();
   }
 });
+
 /* =========================
-   Navbar Toggle
+   FIX 1: Navbar Toggle
+   - Toggles .show on click
+   - Closes menu when any nav link is clicked
+   - Closes menu when clicking outside
 ========================= */
 const menuToggle = document.getElementById("menu-toggle");
 const navLinks = document.getElementById("nav-links");
 
-menuToggle.addEventListener("click", () => {
+// Toggle open/close on hamburger click
+menuToggle.addEventListener("click", (e) => {
+  e.stopPropagation(); // prevent the document click from immediately closing it
   navLinks.classList.toggle("show");
+});
+
+// FIX 1: Close menu when a nav link is clicked
+navLinks.querySelectorAll("a").forEach(link => {
+  link.addEventListener("click", () => {
+    navLinks.classList.remove("show");
+  });
+});
+
+// FIX 1: Close menu when clicking anywhere outside the navbar
+document.addEventListener("click", (e) => {
+  if (!navLinks.contains(e.target) && !menuToggle.contains(e.target)) {
+    navLinks.classList.remove("show");
+  }
 });
 
 /* =========================
