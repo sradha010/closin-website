@@ -138,6 +138,93 @@ body {
 /* =========================
    Hero Section
 ========================= */
+/* Hero position fix */
+.hero {
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-background {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Orb base style */
+.gradient-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.4;
+  animation: float 8s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* Orb 1 — top right purple */
+.orb-1 {
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, #7c3aed 0%, transparent 70%);
+  top: -10%;
+  right: -10%;
+  animation-delay: 0s;
+}
+
+/* Orb 2 — bottom left violet */
+.orb-2 {
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, #a78bfa 0%, transparent 70%);
+  bottom: -10%;
+  left: -5%;
+  animation-delay: -3s;
+}
+
+/* Orb 3 — center soft glow */
+.orb-3 {
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, #6d28d9 0%, transparent 70%);
+  top: 40%;
+  left: 40%;
+  animation-delay: -5s;
+}
+
+/* Float animation */
+@keyframes float {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  33%       { transform: translateY(-30px) scale(1.05); }
+  66%       { transform: translateY(20px) scale(0.95); }
+}
+
+/* Make sure hero content stays above orbs */
+.hero-content {
+  position: relative;
+  z-index: 1;
+}
+@media (max-width: 768px) {
+  .orb-1 {
+    width: 250px;
+    height: 250px;
+    top: -5%;
+    right: -15%;
+  }
+
+  .orb-2 {
+    width: 200px;
+    height: 200px;
+    bottom: -5%;
+    left: -10%;
+  }
+
+  .orb-3 {
+    width: 150px;
+    height: 150px;
+    top: 50%;
+    left: 35%;
+  }
+}
 .hero {
   min-height: 100vh;
   display: flex;
