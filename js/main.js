@@ -144,7 +144,12 @@ function animate() {
 /* =========================
    Start — Desktop Only
 ========================= */
-if (window.innerWidth > 768) {
+function isMobile() {
+  return window.innerWidth <= 768;
+}
+
+if (!isMobile()) {
+  canvas.style.display = 'block';
   initParticles();
   animate();
 } else {
@@ -152,7 +157,7 @@ if (window.innerWidth > 768) {
 }
 
 window.addEventListener('resize', () => {
-  if (window.innerWidth > 768) {
+  if (!isMobile()) {
     canvas.style.display = 'block';
     if (particles.length === 0) {
       initParticles();
@@ -160,9 +165,9 @@ window.addEventListener('resize', () => {
     }
   } else {
     canvas.style.display = 'none';
+    particles.length = 0; // ← clear particles on mobile
   }
 });
-
 /* =========================
    Navbar Toggle
 ========================= */
