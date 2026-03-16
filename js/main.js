@@ -17,7 +17,6 @@ window.addEventListener("mouseleave", () => {
   mouse.y = null;
 });
 
-
 /* =========================
    Canvas Setup
 ========================= */
@@ -29,9 +28,7 @@ function resizeCanvas() {
   canvas.height = window.innerHeight;
 }
 resizeCanvas();
-
 window.addEventListener("resize", resizeCanvas);
-
 
 /* =========================
    Particle Class
@@ -50,8 +47,6 @@ class Particle {
   move() {
     this.x += this.vx;
     this.y += this.vy;
-
-    // gentle screen wrap (premium feel)
     if (this.x < 0) this.x = canvas.width;
     if (this.x > canvas.width) this.x = 0;
     if (this.y < 0) this.y = canvas.height;
@@ -60,24 +55,18 @@ class Particle {
 
   draw() {
     let opacity = 0.12;
-
     if (mouse.x && mouse.y) {
       const dx = mouse.x - this.x;
       const dy = mouse.y - this.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
-
-      if (dist < mouse.radius) {
-        opacity = 0.85;
-      }
+      if (dist < mouse.radius) opacity = 0.85;
     }
-
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
     ctx.fillStyle = `rgba(180, 140, 255, ${opacity})`;
     ctx.fill();
   }
 }
-
 
 /* =========================
    Init Particles
@@ -89,29 +78,22 @@ function initParticles() {
   }
 }
 
-
 /* =========================
    Local Network (Reveal)
 ========================= */
 function drawLocalNetwork() {
   if (!mouse.x || !mouse.y) return;
-
   for (let i = 0; i < particles.length; i++) {
     const p1 = particles[i];
-
     const dxm = mouse.x - p1.x;
     const dym = mouse.y - p1.y;
     const mouseDist = Math.sqrt(dxm * dxm + dym * dym);
-
     if (mouseDist > mouse.radius) continue;
-
     for (let j = i + 1; j < particles.length; j++) {
       const p2 = particles[j];
-
       const dx = p1.x - p2.x;
       const dy = p1.y - p2.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
-
       if (dist < 90) {
         ctx.strokeStyle = `rgba(180, 140, 255, ${(1 - dist / 90) * 0.45})`;
         ctx.lineWidth = 0.5;
@@ -126,18 +108,15 @@ function drawLocalNetwork() {
   }
 }
 
-
 /* =========================
-   Mouse Anchor Lines (Core)
+   Mouse Anchor Lines
 ========================= */
 function drawMouseConnections() {
   if (!mouse.x || !mouse.y) return;
-
   particles.forEach(p => {
     const dx = mouse.x - p.x;
     const dy = mouse.y - p.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
-
     if (dist < mouse.radius) {
       ctx.strokeStyle = `rgba(200, 160, 255, ${1 - dist / mouse.radius})`;
       ctx.lineWidth = 1;
@@ -147,90 +126,122 @@ function drawMouseConnections() {
       ctx.moveTo(mouse.x, mouse.y);
       ctx.lineTo(p.x, p.y);
       ctx.stroke();
-
     }
   });
 }
-
 
 /* =========================
    Animation Loop
 ========================= */
 function animate() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  particles.forEach(p => {
-    p.move();
-    p.draw();
-  });
-
+  particles.forEach(p => { p.move(); p.draw(); });
   drawLocalNetwork();
   drawMouseConnections();
-
   requestAnimationFrame(animate);
 }
 
-// === Draggable Client Scroll ===
-const scrollContainer = document.querySelector('.clients-scroll-wrapper');
-let isDown = false;
-let startX;
-let scrollLeft;
+/* =========================
+   Start — Desktop Only
+========================= */
+if (window.innerWidth > 768) {
+  initParticles();
+  animate();
+} else {
+  canvas.style.display = 'none';
+}
 
-// Pause animation on drag
-scrollContainer.addEventListener('mousedown', (e) => {
-    isDown = true;
-    scrollContainer.style.cursor = 'grabbing';
-    startX = e.pageX - scrollContainer.offsetLeft;
-    scrollLeft = scrollContainer.scrollLeft;
-    document.querySelector('.clients-scroll').style.animationPlayState = 'paused';
-});
-
-scrollContainer.addEventListener('mouseleave', () => {
-    isDown = false;
-    scrollContainer.style.cursor = 'grab';
-    document.querySelector('.clients-scroll').style.animationPlayState = 'running';
-});
-
-scrollContainer.addEventListener('mouseup', () => {
-    isDown = false;
-    scrollContainer.style.cursor = 'grab';
-    document.querySelector('.clients-scroll').style.animationPlayState = 'running';
-});
-
-scrollContainer.addEventListener('mousemove', (e) => {
-    if (!isDown) return;
-    e.preventDefault();
-    const x = e.pageX - scrollContainer.offsetLeft;
-    const walk = (x - startX) * 2;
-    scrollContainer.scrollLeft = scrollLeft - walk;
-});
-
-// Touch support for mobile
-scrollContainer.addEventListener('touchstart', (e) => {
-    startX = e.touches[0].pageX - scrollContainer.offsetLeft;
-    scrollLeft = scrollContainer.scrollLeft;
-    document.querySelector('.clients-scroll').style.animationPlayState = 'paused';
-});
-
-scrollContainer.addEventListener('touchend', () => {
-    document.querySelector('.clients-scroll').style.animationPlayState = 'running';
-});
-
-scrollContainer.addEventListener('touchmove', (e) => {
-    const x = e.touches[0].pageX - scrollContainer.offsetLeft;
-    const walk = (x - startX) * 2;
-    scrollContainer.scrollLeft = scrollLeft - walk;
+window.addEventListener('resize', () => {
+  if (window.innerWidth > 768) {
+    canvas.style.display = 'block';
+    if (particles.length === 0) {
+      initParticles();
+      animate();
+    }
+  } else {
+    canvas.style.display = 'none';
+  }
 });
 
 /* =========================
-   Start
+   Navbar Toggle
 ========================= */
-initParticles();
-animate();
-
 const menuToggle = document.getElementById("menu-toggle");
 const navLinks = document.getElementById("nav-links");
 
 menuToggle.addEventListener("click", () => {
   navLinks.classList.toggle("show");
 });
+
+/* =========================
+   Draggable Client Scroll
+========================= */
+const scrollContainer = document.querySelector('.clients-scroll-wrapper');
+let isDown = false;
+let startX;
+let scrollLeft;
+
+scrollContainer.addEventListener('mousedown', (e) => {
+  isDown = true;
+  scrollContainer.style.cursor = 'grabbing';
+  startX = e.pageX - scrollContainer.offsetLeft;
+  scrollLeft = scrollContainer.scrollLeft;
+  document.querySelector('.clients-scroll').style.animationPlayState = 'paused';
+});
+
+scrollContainer.addEventListener('mouseleave', () => {
+  isDown = false;
+  scrollContainer.style.cursor = 'grab';
+  document.querySelector('.clients-scroll').style.animationPlayState = 'running';
+});
+
+scrollContainer.addEventListener('mouseup', () => {
+  isDown = false;
+  scrollContainer.style.cursor = 'grab';
+  document.querySelector('.clients-scroll').style.animationPlayState = 'running';
+});
+
+scrollContainer.addEventListener('mousemove', (e) => {
+  if (!isDown) return;
+  e.preventDefault();
+  const x = e.pageX - scrollContainer.offsetLeft;
+  const walk = (x - startX) * 2;
+  scrollContainer.scrollLeft = scrollLeft - walk;
+});
+
+// Touch support for mobile
+scrollContainer.addEventListener('touchstart', (e) => {
+  startX = e.touches[0].pageX - scrollContainer.offsetLeft;
+  scrollLeft = scrollContainer.scrollLeft;
+  document.querySelector('.clients-scroll').style.animationPlayState = 'paused';
+});
+
+scrollContainer.addEventListener('touchend', () => {
+  document.querySelector('.clients-scroll').style.animationPlayState = 'running';
+});
+
+scrollContainer.addEventListener('touchmove', (e) => {
+  const x = e.touches[0].pageX - scrollContainer.offsetLeft;
+  const walk = (x - startX) * 2;
+  scrollContainer.scrollLeft = scrollLeft - walk;
+});
+
+/* =========================
+   Scroll Reveal Animation
+========================= */
+const revealElements = document.querySelectorAll(
+  '.why-card, .service-card, .reason-card, .process-step, .testimonial-card'
+);
+
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach((entry, index) => {
+    if (entry.isIntersecting) {
+      setTimeout(() => {
+        entry.target.classList.add('visible');
+      }, index * 100);
+      revealObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.15 });
+
+revealElements.forEach(el => revealObserver.observe(el));
